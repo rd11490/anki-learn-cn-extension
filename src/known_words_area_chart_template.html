@@ -8,8 +8,8 @@
         body { background: #222; color: #fff; font-family: Arial, sans-serif; }
         .chart-title { font-size: 24px; font-weight: bold; margin-bottom: 16px; }
         .axis-label { font-size: 14px; fill: #fff; }
-        .area { fill: #4CAF50; opacity: 0.7; }
-        .line { stroke: #2196F3; stroke-width: 2px; fill: none; }
+        .area { fill: #4CAF50; opacity: 0.5; }
+        .line { stroke: #4CAF50; stroke-width: 2px; fill: none; }
         .tooltip { position: absolute; background: #333; color: #fff; padding: 6px 12px; border-radius: 4px; pointer-events: none; font-size: 13px; }
     </style>
 </head>
@@ -59,6 +59,49 @@
                 .datum(progressData)
                 .attr("class", "line")
                 .attr("d", line);
+            // HSK level lines and labels
+            // HSK level colors (same as bar chart)
+            const hskColors = {
+                "HSK1": "#4CAF50",
+                "HSK2": "#2196F3",
+                "HSK3": "#FFC107",
+                "HSK4": "#FF5722",
+                "HSK5": "#9C27B0",
+                "HSK6": "#607D8B"
+            };
+            const hskLevels = [
+                { level: "HSK1", total: 150 },
+                { level: "HSK2", total: 300 },
+                { level: "HSK3", total: 600 },
+                { level: "HSK4", total: 1200 },
+                { level: "HSK5", total: 2500 },
+                { level: "HSK6", total: 5000 }
+            ];
+            hskLevels.forEach(hsk => {
+                if (hsk.total <= smartMax) {
+                    const color = hskColors[hsk.level] || "#fff";
+                    chart.append("line")
+                        .attr("x1", 0)
+                        .attr("x2", width)
+                        .attr("y1", y(hsk.total))
+                        .attr("y2", y(hsk.total))
+                        .attr("stroke", color)
+                        .attr("stroke-width", 1)
+                        .attr("stroke-dasharray", "6,4")
+                        .attr("opacity", 0.7);
+                    chart.append("text")
+                        .attr("x", 6)
+                        .attr("y", y(hsk.total) + 4)
+                        .attr("text-anchor", "start")
+                        .attr("fill", color)
+                        .attr("font-size", "13px")
+                        .attr("font-weight", "bold")
+                        .attr("stroke", "#111")
+                        .attr("stroke-width", 2)
+                        .attr("paint-order", "stroke")
+                        .text(hsk.level);
+                }
+            });
             // X axis
             chart.append("g")
                 .attr("transform", `translate(0,${height})`)
