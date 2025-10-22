@@ -36,21 +36,39 @@ def render_chinese_progress_html():
     cards = get_cards_from_anki()
     aggregator = ProgressAggregator(cards)
     hsk_stats = aggregator.hsk_stats()
-    # Render HSK bar chart HTML
+    # Render HSK bar chart HTML (D3.js)
+    from hsk_bar_chart import render_hsk_bar_charts
     hsk_html = render_hsk_bar_charts(hsk_stats)
-    # Placeholder for area chart (can be replaced with real chart HTML)
-    area_chart_html = '<div style="margin-top:24px;"><em>Known Words Area Chart coming soon...</em></div>'
+    # Render known words area chart HTML (D3.js)
+    progress_data = aggregator.known_words_over_time()
+    template_path = os.path.join(os.path.dirname(__file__), "known_words_area_chart_template.html")
+    with open(template_path, "r", encoding="utf-8") as f:
+        area_html = f.read()
+    import json, re
+    data_json = json.dumps(progress_data)
+    area_html = re.sub(r"const progressData =[^;]*;", f"const progressData = {data_json};", area_html)
+    # Compose both charts in the deck browser
+    words_count = aggregator.total_known_words()
+    chars_count = aggregator.total_known_characters()
     return f"""
     <div id='chinese-learn-progress' style='margin-top:24px;'>
         <h2>Chinese Progress</h2>
-        {hsk_html}
-        {area_chart_html}
+        <div style='font-size:1.1em; margin-bottom:12px;'>
+            <b>Total Known Words:</b> {words_count} &nbsp; | &nbsp; <b>Total Known Characters:</b> {chars_count}
+        </div>
+        <div style='margin-bottom:32px;'>{hsk_html}</div>
+        <div style='margin-bottom:32px;'>{area_html}</div>
     </div>
     """
 
 
 def inject_chinese_progress(deck_browser, content):
-    if hasattr(content, "content"):
+    # For deck browser, append to content.stats
+    if hasattr(content, "stats"):
+        content.stats += render_chinese_progress_html()
+        return content
+    # Fallback for other contexts
+    elif hasattr(content, "content"):
         content.content += render_chinese_progress_html()
         return content
     else:

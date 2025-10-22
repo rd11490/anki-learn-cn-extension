@@ -17,25 +17,19 @@
     <div class="chart-title">Known Words Over Time</div>
     <svg id="known-words-area-chart" width="900" height="400"></svg>
     <script>
-        // Example data injected from Python
-        const progressData = [
-            { date: "2025-10-01", known_words: 50 },
-            { date: "2025-10-02", known_words: 52 },
-            { date: "2025-10-03", known_words: 55 },
-            { date: "2025-10-04", known_words: 60 },
-            { date: "2025-10-05", known_words: 65 }
-        ];
-        // Parse dates
-        progressData.forEach(d => {
-            d.date = d3.timeParse("%Y-%m-%d")(d.date);
-        });
-        // Chart dimensions
-        const svg = d3.select("#known-words-area-chart");
-        const margin = { top: 40, right: 30, bottom: 40, left: 60 };
-        const width = +svg.attr("width") - margin.left - margin.right;
-        const height = +svg.attr("height") - margin.top - margin.bottom;
-        const chart = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+        // progressData is injected by Python
+        const progressData = [];
         if (progressData.length > 0) {
+            // Parse dates
+            progressData.forEach(d => {
+                d.date = d3.timeParse("%Y-%m-%d")(d.date);
+            });
+            // Chart dimensions
+            const svg = d3.select("#known-words-area-chart");
+            const margin = { top: 40, right: 30, bottom: 40, left: 60 };
+            const width = +svg.attr("width") - margin.left - margin.right;
+            const height = +svg.attr("height") - margin.top - margin.bottom;
+            const chart = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
             // X and Y scales
             const x = d3.scaleTime()
                 .domain(d3.extent(progressData, d => d.date))

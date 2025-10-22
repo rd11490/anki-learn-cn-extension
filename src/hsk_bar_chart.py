@@ -3,6 +3,9 @@
 Renders bar charts for each HSK level using HTML and CSS for Anki deck browser integration.
 """
 from typing import Dict
+import json
+import os
+import re
 
 HSK_COLORS = {
     "HSK1": "#4CAF50",
@@ -14,20 +17,13 @@ HSK_COLORS = {
 }
 
 def render_hsk_bar_charts(hsk_stats: Dict[str, Dict[str, int]]) -> str:
-    html = '<div class="hsk-bar-charts">'
+    # Load the D3.js template
+    template_path = os.path.join(os.path.dirname(__file__), "hsk_bar_chart_template.html")
+    with open(template_path, "r", encoding="utf-8") as f:
+        html = f.read()
+    data = []
     for level, stats in hsk_stats.items():
-        total = stats["total"]
-        known = stats["known"]
-        percent = (known / total * 100) if total else 0
-        color = HSK_COLORS.get(level, "#888")
-        html += f'''
-        <div class="hsk-bar-row">
-            <span class="hsk-label">{level}</span>
-            <div class="hsk-bar-outline" style="background:#eee; border:1px solid {color}; width:200px; height:24px; position:relative;">
-                <div class="hsk-bar-fill" style="background:{color}; width:{percent}%; height:100%;"></div>
-                <span class="hsk-bar-text" style="position:absolute; left:50%; top:0; transform:translateX(-50%); color:#222; font-size:14px;">{known}/{total}</span>
-            </div>
-        </div>
-        '''
-    html += '</div>'
+        data.append({"level": level, "total": stats["total"], "known": stats["known"]})
+    data_json = json.dumps(data)
+    html = re.sub(r"const hskStats =[^;]*;", f"const hskStats = {data_json};", html)
     return html
