@@ -1,17 +1,15 @@
-from aqt import gui_hooks
 
-# Anki imports
-from aqt import mw
-from aqt.qt import QAction, QDialog, QVBoxLayout
+# Standard library imports
 import sys
 import os
 import re
+import json
+from datetime import datetime
 
-
-# Ensure src directory is in sys.path for Anki add-on loading
-src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__)))
-if src_dir not in sys.path:
-    sys.path.insert(0, src_dir)
+# Anki imports
+from aqt import gui_hooks
+from aqt import mw
+from aqt.qt import QAction, QDialog, QVBoxLayout
 
 # PyQt6 import for webview (Anki Qt6)
 try:
@@ -19,15 +17,12 @@ try:
 except ImportError:
     QWebEngineView = None
 
-# Standard imports
-import os
-import json
-from datetime import datetime
-
-
+# Ensure src directory is in sys.path for Anki add-on loading
+src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
 
 # Local module imports
-
 from data_model import Card, Review, ProgressAggregator
 from hsk_bar_chart import render_hsk_bar_charts
 
