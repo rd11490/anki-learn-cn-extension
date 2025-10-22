@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HSK Level Bar Chart</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body { background: #222; color: #fff; font-family: Arial, sans-serif; }
+        .chart-title { font-size: 24px; font-weight: bold; margin-bottom: 16px; }
+        .bar-label { font-size: 14px; fill: #fff; }
+        .bar-outline { stroke-width: 2; fill: none; }
+        .bar-fill { opacity: 0.85; }
+        .tooltip { position: absolute; background: #333; color: #fff; padding: 6px 12px; border-radius: 4px; pointer-events: none; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="chart-title">HSK Level Progress</div>
+    <svg id="hsk-bar-chart" width="900" height="400"></svg>
+    <script>
+        // hskStats is injected by Python
+        const hskStats = [];
+        // Colors for each HSK level
+        const colors = {
+            "HSK1": "#4CAF50",
+            "HSK2": "#2196F3",
+            "HSK3": "#FFC107",
+            "HSK4": "#FF5722",
+            "HSK5": "#9C27B0",
+            "HSK6": "#607D8B"
+        };
+        // Chart dimensions
+        const svg = d3.select("#hsk-bar-chart");
+        const margin = { top: 40, right: 30, bottom: 40, left: 60 };
+        const width = +svg.attr("width") - margin.left - margin.right;
+        const height = +svg.attr("height") - margin.top - margin.bottom;
+        const chart = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+        // X and Y scales
+        if (typeof hskStats !== 'undefined' && hskStats.length > 0) {
+            const x = d3.scaleBand()
+                .domain(hskStats.map(d => d.level))
+                .range([0, width])
+                .padding(0.25);
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(hskStats, d => d.total)])
+                .range([height, 0]);
+            // Draw total bars (background)
+            chart.selectAll(".bar-outline")
+                .data(hskStats)
+                .enter()
+                .append("rect")
+                .attr("class", "bar-outline")
+                .attr("x", d => x(d.level))
+                .attr("y", d => y(d.total))
+                .attr("width", x.bandwidth())
+                .attr("height", d => height - y(d.total))
+                .attr("stroke", d => colors[d.level] || "#888")
+                .attr("fill", "#333");
+            // Draw known bars (foreground)
+            chart.selectAll(".bar-fill")
+                .data(hskStats)
+                .enter()
+                .append("rect")
+                .attr("class", "bar-fill")
+                .attr("x", d => x(d.level))
+                .attr("y", d => y(d.known))
+                .attr("width", x.bandwidth())
+                .attr("height", d => height - y(d.known))
+                .attr("fill", d => colors[d.level] || "#888");
+            // Add labels
+            chart.selectAll(".bar-label")
+                .data(hskStats)
+                .enter()
+                .append("text")
+                .attr("class", "bar-label")
+                .attr("x", d => x(d.level) + x.bandwidth() / 2)
+                .attr("y", d => y(d.total) - 8)
+                .attr("text-anchor", "middle")
+                .text(d => `${d.level}: ${d.known}/${d.total}`);
+            // X axis
+            chart.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x));
+            // Y axis
+            chart.append("g")
+                .call(d3.axisLeft(y));
+        }
+    </script>
+</body>
+</html>

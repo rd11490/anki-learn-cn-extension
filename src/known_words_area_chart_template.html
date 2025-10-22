@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Known Words Over Time</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body { background: #222; color: #fff; font-family: Arial, sans-serif; }
+        .chart-title { font-size: 24px; font-weight: bold; margin-bottom: 16px; }
+        .axis-label { font-size: 14px; fill: #fff; }
+        .area { fill: #4CAF50; opacity: 0.7; }
+        .line { stroke: #2196F3; stroke-width: 2px; fill: none; }
+        .tooltip { position: absolute; background: #333; color: #fff; padding: 6px 12px; border-radius: 4px; pointer-events: none; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="chart-title">Known Words Over Time</div>
+    <svg id="known-words-area-chart" width="900" height="400"></svg>
+    <script>
+        // Example data injected from Python
+        const progressData = [
+            { date: "2025-10-01", known_words: 50 },
+            { date: "2025-10-02", known_words: 52 },
+            { date: "2025-10-03", known_words: 55 },
+            { date: "2025-10-04", known_words: 60 },
+            { date: "2025-10-05", known_words: 65 }
+        ];
+        // Parse dates
+        progressData.forEach(d => {
+            d.date = d3.timeParse("%Y-%m-%d")(d.date);
+        });
+        // Chart dimensions
+        const svg = d3.select("#known-words-area-chart");
+        const margin = { top: 40, right: 30, bottom: 40, left: 60 };
+        const width = +svg.attr("width") - margin.left - margin.right;
+        const height = +svg.attr("height") - margin.top - margin.bottom;
+        const chart = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+        if (progressData.length > 0) {
+            // X and Y scales
+            const x = d3.scaleTime()
+                .domain(d3.extent(progressData, d => d.date))
+                .range([0, width]);
+            // Calculate smart y-axis max
+            const maxKnown = d3.max(progressData, d => d.known_words);
+            const smartMax = Math.max(Math.round(maxKnown * 1.5), 1000);
+            const y = d3.scaleLinear()
+                .domain([0, smartMax])
+                .range([height, 0]);
+            // Area generator
+            const area = d3.area()
+                .x(d => x(d.date))
+                .y0(height)
+                .y1(d => y(d.known_words));
+            // Line generator
+            const line = d3.line()
+                .x(d => x(d.date))
+                .y(d => y(d.known_words));
+            // Draw area
+            chart.append("path")
+                .datum(progressData)
+                .attr("class", "area")
+                .attr("d", area);
+            // Draw line
+            chart.append("path")
+                .datum(progressData)
+                .attr("class", "line")
+                .attr("d", line);
+            // X axis
+            chart.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%b %d")));
+            // Y axis
+            chart.append("g")
+                .call(d3.axisLeft(y));
+        }
+    </script>
+</body>
+</html>
